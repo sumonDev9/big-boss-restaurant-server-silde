@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.POST || 5000;  
@@ -34,6 +35,14 @@ async function run() {
     const reviewCollection = client.db("bigBossDb").collection("reviews");
     const cartCollection = client.db("bigBossDb").collection("carts");
 
+
+    // jwt related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1h'
+      })
+    })
 
     //get menu
     app.get('/menu', async(req, res) => {
@@ -95,7 +104,7 @@ async function run() {
         }
       }
       const result = await userCollection.updateOne(filter, updatedDoc)
-      res.send(result)
+      res.send(result);
     })
     
     app.delete('/users/:id', async(req, res) => {
