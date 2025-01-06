@@ -30,6 +30,7 @@ async function run() {
     await client.connect();
 
     const menuCollection = client.db("bigBossDb").collection("menu");
+    const userCollection = client.db("bigBossDb").collection("users");
     const reviewCollection = client.db("bigBossDb").collection("reviews");
     const cartCollection = client.db("bigBossDb").collection("carts");
 
@@ -66,6 +67,19 @@ async function run() {
       const query = {_id: new ObjectId(id)}
       const result = await cartCollection.deleteOne(query);
       res.send(result);
+    })
+
+    // user related api
+    app.post('/users', async(req, res) => {
+      const user = req.body;
+      // insert email if user doesnt exist:
+      const query = {email: user.email}
+      const existinUser = await userCollection.findOne(query);
+      if(existinUser){
+        return res.send({message: 'user alreay exists', insertedId: null})
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result)
     })
 
 
