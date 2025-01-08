@@ -63,10 +63,17 @@ async function run() {
     }
 
     //get menu
+    app.post('/menu', verifyToken,  async (req, res) => {
+      const item = req.body;
+      const result = await menuCollection.insertOne(item);
+      res.send(result)
+    })
     app.get('/menu', async(req, res) => {
       const result = await menuCollection.find().toArray();
       res.send(result)
     })
+
+
     
     // reviwe
     app.get('/reviews', async(req, res) => {
