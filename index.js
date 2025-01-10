@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.POST || 5000;  
@@ -47,7 +48,7 @@ async function run() {
 
     // middlwares
     const verifyToken = (req, res, next) => {
-      console.log('inside verify token', req.headers.authorization); 
+      // console.log('inside verify token', req.headers.authorization); 
       if(!req.headers.authorization){
         return res.status(401).send({message: 'unauthorized access'})
       }
