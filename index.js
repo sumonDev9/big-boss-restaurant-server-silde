@@ -35,6 +35,7 @@ async function run() {
     const userCollection = client.db("bigBossDb").collection("users");
     const reviewCollection = client.db("bigBossDb").collection("reviews");
     const cartCollection = client.db("bigBossDb").collection("carts");
+    const paymentCollection = client.db("bigBossDb").collection("payments");
 
 
     // jwt related api
@@ -152,9 +153,7 @@ async function run() {
 
 
     // user related api
-
-
-    app.get('/users', verifyToken, verifyAdmin, async(req, res) => {
+   app.get('/users', verifyToken, verifyAdmin, async(req, res) => {
       // console.log(req.headers); // jwt token check
       const result = await userCollection.find().toArray();
       res.send(result);
@@ -219,6 +218,20 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })  
+    })
+
+    app.post('/payments', async(req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+
+      // careully delete each items form the cart
+      console.log('payment info', payment);
+      const query = {_id: {
+        $in: payment.cartIds.map(id => new ObjectId(id))
+      }}
+      const deleteResult = await cartCollection.deleteMany(query);
+      res.send({paymentResult, deleteResult});
+
     })
 
 
