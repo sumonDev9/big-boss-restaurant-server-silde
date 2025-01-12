@@ -245,16 +245,16 @@ async function run() {
 
 
     // stats or analytics
-    app.get('/admin-stats', async(req, res) => {
+    app.get('/admin-stats',verifyToken, verifyAdmin,  async(req, res) => {
       const users = await userCollection.estimatedDocumentCount();
       const menuItems = await menuCollection.estimatedDocumentCount();
       const orders = await paymentCollection.estimatedDocumentCount();
 
-      // this is not the best way
+      //step: 1 this is not the best way
       // const payments = await paymentCollection.find().toArray();
       // const revenue = payments.reduce((total, payment) => total + payment.price, 0)
 
-      //this is the better way
+      //step: 2 this is the better way
       const result = await paymentCollection.aggregate([
         {
           $group: {
@@ -270,6 +270,37 @@ async function run() {
 
       res.send({users, menuItems, orders, revenue})
     })
+
+
+    // using aggregate pipeline konta kota order diyechi seta ber koreche. bar chat e jonno
+    app.get('/order-stats', async(req, res) => {
+      const result = await paymentCollection.aggregate([
+      {
+        $unwind: '$menuitemIds'
+      },
+      {
+        $lookup: {
+          from: 'menu', 
+          localField: 'menuitemIds',
+          foreignField: '_id',
+          as: 'menuItems'
+        }
+      },
+      {
+        $unwind: '$menuItems'
+      },
+      {
+        $group: {
+          _id: '$menuItems.category',
+          quantity: {$sum: 1},
+          revenue: {$sum: '$menuItems.price'}
+        }
+      }
+      ]).toArray();
+      res.send(result);
+    })
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
